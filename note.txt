@@ -1,0 +1,24 @@
++ Using stripe to work with payment
++ Allow admin to add new staffs, provide permissions to staff. For example: Staff 1 has permission to add new customer, staff 2 can process the order
++ Using node mailer to send mails
+Some necessary features:
++ CRUD Products
++ Cart managements.
++ Filter, search products.
++ Buy online 
+
+--Installation
+  + npm install class-validator --save
+
+  + npm install --save @nestjs-modules/mailer nodemailer
+  + npm install --save-dev @types/nodemailer
+
+  + npm install --save @nestjs/jwt passport-jwt
+  + npm install --save-dev @types/passport-jwt 
+
+  + npm i --save @nestjs/config
+  + npm install --save typeorm pg
+  + npm install bcrypt
+  + npm i nestjs-typeorm-paginate
+  + npm install --save nestjs-stripe
+  +  npm install crypto-random-string
