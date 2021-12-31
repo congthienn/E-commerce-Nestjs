@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, createParamDecorator, Delete, ExecutionContext, Get, Param, Post, Put, Query, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Comments } from 'src/models/comments.entity';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { editFileName, imageFileFilter } from '../images/file-upload.utils';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
@@ -13,6 +14,12 @@ export const storage = {
     }),
     fileFilter:imageFileFilter
 }
+export const GetUser = createParamDecorator(
+    (data: unknown, ctx: ExecutionContext) => {
+      const request = ctx.switchToHttp().getRequest();
+      return request.user;
+    },
+  );
 @Controller('comments')
 export class CommentsController {
     constructor(
@@ -34,9 +41,10 @@ export class CommentsController {
         return this.commentsService.commentInComments(id);
     }
 
+    @UseGuards(JwtAuthGuard)
     @UseInterceptors(FilesInterceptor('images',20,storage))
     @Post()
-    create(@Body() comment:CreateCommentDto,@UploadedFiles() images):Promise<any>{
+    create(@Body() comment:CreateCommentDto,@UploadedFiles() images,@GetUser() user):Promise<any>{
         const arrayImgs = [];
         if(images !== undefined){
             images.forEach(item => {
@@ -44,21 +52,25 @@ export class CommentsController {
             });
         }
         comment.img = arrayImgs;
-        return this.commentsService.create(comment)
+        return this.commentsService.create(comment,user);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Delete(":id")
-    delete(@Param("id") id):Promise<any>{
-        return this.commentsService.delete(id);
+    delete(@Param("id") id,@GetUser() user):Promise<any>{
+        return this.commentsService.delete(id,user);
     }
+
+    @UseGuards(JwtAuthGuard)
     @Delete("img/:id")
-    deleteImg(@Param("id") id):Promise<any>{
-        return this.commentsService.deleteImage(id);
+    deleteImg(@Param("id") id,@GetUser() user):Promise<any>{
+        return this.commentsService.deleteImage(id,user);
     }
     
+    @UseGuards(JwtAuthGuard)
     @UseInterceptors(FilesInterceptor('images',20,storage))
     @Put(":id")
-    update(@Param('id') id,@Body() comment:CreateCommentDto,@UploadedFiles() images):Promise<any>{
+    update(@Param('id') id,@Body() comment:CreateCommentDto,@UploadedFiles() images,@GetUser() user):Promise<any>{
         const arrayImgs = [];
         if(images !== undefined){
             images.forEach(item => {
@@ -66,6 +78,6 @@ export class CommentsController {
             });
         }
         comment.img = arrayImgs;
-        return this.commentsService.update(id,comment);
+        return this.commentsService.update(id,comment,user);
     }
 }

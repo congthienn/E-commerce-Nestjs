@@ -1,21 +1,13 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Tree, TreeChildren, TreeParent } from "typeorm";
+import { Column, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, Tree, TreeChildren, TreeParent } from "typeorm";
 import { CommentImages } from "./comment_image.entity";
 import { Products } from "./products.entity";
+import { User } from "./user.entity";
 
 @Entity()
 @Tree("closure-table")
 export class Comments{
     @PrimaryGeneratedColumn()
     id:number;
-
-    @Column({length:255})
-    customer:string;
-
-    @Column({length:12})
-    phone:string;
-
-    @Column()
-    email:string;
 
     @Column('text')
     comment:string;
@@ -37,4 +29,9 @@ export class Comments{
 
     @OneToMany(()=>CommentImages,commentImages => commentImages.comment)
     commentImages:CommentImages[];
+
+    @Column()
+    userId:string;
+    @ManyToOne(()=> User,user => user.comments,{onDelete:"SET NULL"})
+    user:User;
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { join } from 'path';
@@ -17,7 +17,7 @@ export class CommentsService {
     ){}
     async findAll(options:IPaginationOptions,productId:number):Promise<Pagination<any>>{
         return await paginate<Comments>(this.commentsRepository,options,{
-            relations:['commentImages'],
+            relations:['commentImages','user'],
             where:{
                 productId:productId,
                 reply_comment:null
@@ -27,15 +27,16 @@ export class CommentsService {
     async commentInComments(id:number):Promise<Comments>{
         const commentParent = await this.commentsRepository.findOne({
             where:{id:id},
-            relations:['commentImages']
+            relations:['commentImages','user']
         });
         return await this.commentsRepository.findDescendantsTree(commentParent,{relations:['commentImages']});
     }
-    async create(comment:CreateCommentDto):Promise<any>{
+    async create(comment:CreateCommentDto,user:any):Promise<any>{
         const replyComment = await this.commentsRepository.findOne({
             where:{id:comment.replyCmtId}
         });
         comment.reply_comment = replyComment;
+        comment.userId = user.id;
         const resultComment = await this.commentsRepository.save(comment);
         const imgs=[];
         if(comment.img !== undefined){
@@ -50,13 +51,26 @@ export class CommentsService {
         }
         return {...resultComment,...imgs};
     }
-    async deleteImage(id:number):Promise<any>{
-        const img = await this.cmtImageRepository.findOne(id);
+    async deleteImage(id:number,user:any):Promise<any>{
+        const img = await this.cmtImageRepository.findOne({
+            relations:['comment'],
+            where:{
+                id:id,
+                comment:{
+                    userId:user.id
+                }
+            }
+        });
+        if(!img)
+            throw new NotFoundException({
+                statusCode: 403,
+                message: "Forbidden resource",
+            })
         const fs = require('fs');
         fs.unlinkSync(join(process.cwd(),'images/comments/'+img.img));
         return await this.cmtImageRepository.delete(id);
     }
-    async delete(id:number):Promise<any>{
+    async delete(id:number,user:any):Promise<any>{
         const cmtImages = await this.cmtImageRepository.find({
             where: {commentId:id}
         });
@@ -66,10 +80,25 @@ export class CommentsService {
                 fs.unlinkSync(join(process.cwd(),'images/comments/'+item.img));
             })
         }
+        const comment = await this.commentsRepository.findOne({
+            where:{id:id, userId:user.id}
+        });
+        if(!comment)
+            throw new NotFoundException({
+                statusCode: 403,
+                message: "Forbidden resource",
+            })
         return await this.commentsRepository.delete(id);
     }
-    async update(id:number,comment:CreateCommentDto):Promise<Comments>{
-        const cmt = await this.commentsRepository.findOne({id});
+    async update(id:number,comment:CreateCommentDto,user:any):Promise<Comments>{
+        const cmt = await this.commentsRepository.findOne({
+            where:{id:id,userId:user.id}
+        });
+        if(!cmt)
+            throw new NotFoundException({
+                statusCode: 403,
+                message: "Forbidden resource",
+            })
         const fs = require('fs');
         const imgs=[];
         if(comment.img !== undefined){
@@ -83,7 +112,7 @@ export class CommentsService {
             }
             const del = await this.cmtImageRepository.delete({commentId:id})
             const arrayImg = comment.img;
-            for(let i= 0;i<arrayImg.length;i++){
+            for(let i = 0;i < arrayImg.length;i++){
                 const imgDto = {
                     img:arrayImg[i],
                     commentId:id
@@ -93,9 +122,6 @@ export class CommentsService {
         }
         cmt.comment = comment.comment;
         cmt.star = comment.star;
-        cmt.customer = comment.customer;
-        cmt.email = comment.email;
-        cmt.phone = comment.phone;
         return await this.commentsRepository.save(cmt);
     }
 }

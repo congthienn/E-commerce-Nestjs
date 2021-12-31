@@ -4,10 +4,6 @@ import { memory } from "src/modules/product-type/dto/update-product-type.dto";
 export class CreateOrderDto{
     id?:string;
 
-    @IsString()
-    @IsNotEmpty()
-    customer:string;
-
     price?:number;
 
     pay_status?:Pay_Status;
@@ -16,9 +12,8 @@ export class CreateOrderDto{
     @IsNotEmpty()
     phone:string;
 
-    @IsEmail()
-    @IsNotEmpty()
-    email:string;
+    @IsString()
+    userId:string;
 
     @IsNotEmpty()
     @IsDateString()

@@ -4,6 +4,7 @@ import { District } from "./district.entity";
 import { Payments } from "./payments.entity";
 import { ProductToOrder } from "./ProductToOrder.entity";
 import { Province } from "./province.entity";
+import { User } from "./user.entity";
 import { Ward } from "./ward.entity";
 
 @Entity()
@@ -14,19 +15,18 @@ export class Orders{
     @Column('int')
     price:number;
 
-    @Column({length:255})
-    customer:string;
-
-    @Column({length:255})
-    phone:string;
+    @Column()
+    userId:string;
+    @ManyToOne(() => User,user => user.orders,{onDelete:"SET NULL"})
+    user:User
 
     @Column()
-    email:string;
+    phone:string;
 
     @Column({type:'timestamp',default:()=>"CURRENT_TIMESTAMP"})
     time_create:Date;
 
-    @Column({type:"date"})
+    @Column({type:"date",nullable:true})
     delivery_time:Date;
 
     @Column()
@@ -57,6 +57,9 @@ export class Orders{
     wardId:number;
     @ManyToOne(() => Ward,ward => ward.orders,{onDelete:"SET NULL"})
     ward:Ward;
+
+    @Column({default:false})
+    orderOnline:boolean;
 
     @OneToMany(() => ProductToOrder,productToorder => productToorder.order)
     productToorder:ProductToOrder[];

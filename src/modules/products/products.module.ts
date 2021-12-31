@@ -6,11 +6,13 @@ import { ProductPinInfo } from 'src/models/pin_info.entity';
 import { Products } from 'src/models/products.entity';
 import { ProductType } from 'src/models/product_type.entity';
 import { ProductRearCameraInfo } from 'src/models/rear_camera_info.entity';
+import { RolePermission } from 'src/models/role_permission.entity';
 import { ProductScreenInfo } from 'src/models/screen_info.entity';
 import { ProductImagesModule } from '../images/images.module';
 import { ProductInformationModule } from '../product-information/product-information.module';
 import { ProductTypeModule } from '../product-type/product-type.module';
 import { PromotionModule } from '../promotion/promotion.module';
+import { UserModule } from '../user/user.module';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
 
@@ -23,12 +25,14 @@ import { ProductsService } from './products.service';
       ProductRearCameraInfo,
       ProductOperatingSystemInfo,
       ProductPinInfo,
-      ProductGeneralInfo
+      ProductGeneralInfo,
+      RolePermission
     ]),
     ProductImagesModule,
     ProductInformationModule,
     ProductTypeModule,
-    PromotionModule
+    PromotionModule,
+    UserModule
   ],
   controllers: [ProductsController],
   providers: [ProductsService]

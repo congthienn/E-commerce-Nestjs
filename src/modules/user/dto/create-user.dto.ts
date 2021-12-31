@@ -1,5 +1,7 @@
-import {IsNumber,IsString,IsEmail, IsPhoneNumber} from 'class-validator';
+import {IsNumber,IsString,IsEmail, IsPhoneNumber, IsNotEmpty} from 'class-validator';
 export class CreateUserDto{
+    id?:string;
+
     @IsString()
     user_name:string;
 
@@ -9,17 +11,21 @@ export class CreateUserDto{
     @IsString()
     password:string;
 
-    @IsString()
-    role:UserRole
-
     @IsEmail()
     email:string;
 
-    @IsString()
-    address:string;
+    @IsNumber()
+    roleId:number;
 
-    // @IsString()
+    provinceId?:string;
+
+    districtId?:string;
+
+    wardId?:string;
+
     avatar?:string;
+    
+    stripeCustomerId?:string
 }
 export enum UserRole {
     ADMIN = 'admin',   

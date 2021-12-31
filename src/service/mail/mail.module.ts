@@ -6,11 +6,12 @@ import { join } from 'path';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Orders } from 'src/models/orders.entity';
+import { User } from 'src/models/user.entity';
 ConfigModule.forRoot({isGlobal: true});
 @Global()
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Orders]),
+    TypeOrmModule.forFeature([Orders,User]),
     MailerModule.forRoot({
       transport: {
         host: process.env.MAIL_HOST,

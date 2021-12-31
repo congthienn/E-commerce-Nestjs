@@ -15,6 +15,11 @@ export class PromotionService {
         return await this.promotionRepository.find();
     }
     
+    async findOne(id:number):Promise<Promotion[]>{
+        return await this.promotionRepository.find({
+            where:{productId:id}
+        });
+    }
     async create(promotions: CreatePromotionDto):Promise<Promotion[]>{
         const arrayPromosion = [];
         const arrayName = promotions.name;

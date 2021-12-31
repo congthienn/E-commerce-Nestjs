@@ -7,7 +7,8 @@ import { ProductToOrder } from 'src/models/ProductToOrder.entity';
 import { ProductType } from 'src/models/product_type.entity';
 import { MailService } from 'src/service/mail/mail.service';
 import { ILike, Repository } from 'typeorm';
-import { CreateOrderDto, Order_Status } from './dto/create-order.dto';
+import { CreateOrderOnlineDto } from './dto/create-order-online.dto';
+import { CreateOrderDto, Order_Status, Pay_Status } from './dto/create-order.dto';
 import { OrderStateChangeDto } from './dto/order-state-change.dto';
 
 @Injectable()
@@ -23,16 +24,16 @@ export class OrdersService {
     ){}
     async findAll(options:IPaginationOptions):Promise<Pagination<Orders>>{
         return await paginate<Orders>(this.orderRepository,options,{
-            relations:['province','district','ward']
+            order:{time_create:"DESC"}
         });
     }
     async findOne(id:string):Promise<Orders>{
         return await this.orderRepository.findOne({
             where:{id:id},
-            relations:['province','district','ward','productToorder','productToorder.productType','productToorder.productType.product']
+            relations:['province','district','ward','productToorder','productToorder.productType','productToorder.productType.product','user']
         });
     }
-    async create(order:CreateOrderDto):Promise<any>{
+    async createOrder(order:any):Promise<any>{
         const orderid = cryptoRandomString({length:15,type: 'alphanumeric'}).toLocaleUpperCase();
         const resultProductOrder = [];
         let orderPrice = 0;
@@ -65,9 +66,17 @@ export class OrdersService {
         this.mailService.sendMailOrder(orderid,sub,content);
         return {...newOrder,...resultProductOrder}
     }
+    async createOrderDirectly(order:CreateOrderDto):Promise<any>{
+        return await this.createOrder(order);
+    }
+    async createOrderOnline(order:CreateOrderOnlineDto,user:any):Promise<any>{
+        order.userId = user.id;
+        order.orderOnline = true
+        return await this.createOrder(order);
+    }
     async OrderStateChange(id:string,status:OrderStateChangeDto):Promise<Orders>{
         const findOrder = await this.orderRepository.findOne({id:id});
-        const productToOrder = await this.ProductTorderRepository.find({where: {orderId:id} });
+        const productToOrder = await this.ProductTorderRepository.find({where: {orderId:id}});
         if(Number(status.status) === 3 && Number(findOrder.order_status) !== Number(status.status)){
             for(let i = 0;i<productToOrder.length;i++){
                 const productType = await this.productTypeRepository.findOne({id:productToOrder[i].productTypeId});
@@ -98,7 +107,7 @@ export class OrdersService {
     }
     async CancelOrder(id:string):Promise<any>{
         const findOrder = await this.orderRepository.findOne({id:id});
-        if(Number(findOrder.order_status) >= 3){
+        if(Number(findOrder.order_status) >= 3 || Number(findOrder.pay_status = Pay_Status.Paid)){
             throw new NotFoundException({
                 code: 404,
                 messages:"Can't cancel order"
@@ -124,5 +133,10 @@ export class OrdersService {
                 messages:"Order not found"
             });
         return order;
+    }
+    async OrderByUser(user:any):Promise<any> {
+        return await this.orderRepository.find({
+            where:{userId:user.id}
+        })
     }
 }

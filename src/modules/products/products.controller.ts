@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseInterceptors,UploadedFile, Req, Res, NotFoundException, Query, UploadedFiles } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, UseInterceptors,UploadedFile, Req, Res, NotFoundException, Query, UploadedFiles, UseGuards } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Products } from 'src/models/products.entity';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -17,6 +17,9 @@ import { CreateRearCameraInfoDto } from './dto/create-rear-camera-info.dto';
 import { CreateOperatingSystemDto } from './dto/create-operating-system-info.dto';
 import { CreatePinInfoDto } from './dto/create-pin-info.dto';
 import { CreateGeneralInfoDto } from './dto/create-general-info.dto';
+import { hasPermission } from '../auth/decorator/roles.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 export const storage = {
     storage: diskStorage({
         destination: './images/products',
@@ -59,47 +62,13 @@ export class ProductsController {
                 {page,limit,route:'http://localhost:3000/products'}
             )
         }else{
-            let arrayKeys= [];
-            var i = 0;
-            if(price !== undefined){
-                arrayKeys[i] = {key:'price',value:price};
-                i++;
-            }
-            if(ram !== undefined){
-                arrayKeys[i] = {key:'ram',value:ram};
-                i++;
-            }
-            if(memory !== undefined){
-                arrayKeys[i] = {key:'memory',value:memory};
-                i++;
-            }
-            if(type !== undefined){
-                arrayKeys[i] = {key:'type',value:type};
-                i++;
-            }
-            if(camera !== undefined){
-                arrayKeys[i] = {key:'camera',value:camera};
-                i++;
-            }
-            if(pin !== undefined){
-                arrayKeys[i] = {key:'pin',value:pin};
-                i++;
-            }
-            if(design !== undefined){
-                arrayKeys[i] = {key:'design',value:design};
-                i++;
-            }
-            if(screen !== undefined){
-                arrayKeys[i] = {key:'screen',value:screen};
-                i++;
-            }
-            if(special !== undefined){
-                arrayKeys[i] = {key:'special',value:special};
-                i++;
-            }
-            const keys = arrayKeys.map(function(item){
-                return `${item.key}=${item.value}`;
-            });
+            const arrayKeys={ price,pin,camera,design,screen,special,memory,type,ram };
+
+            const keys = Object.entries(arrayKeys).map(([key,value]) => {
+                if(value !==''){
+                    return `${key}=${value}`;
+                }
+            })
             const url = `http://localhost:3000/products?${keys.join("&")}`;
             return this.productService.filterProduct(
                 {page,limit,route:url},
@@ -112,6 +81,8 @@ export class ProductsController {
         return this.productService.findOne(id);
     }
 
+    @hasPermission("POST_PRODUCT")
+    @UseGuards(JwtAuthGuard,RolesGuard)
     @Post()
     @UseInterceptors(FileInterceptor('product_img',storage))
     create(
@@ -173,6 +144,8 @@ export class ProductsController {
         }  
     }
 
+    @hasPermission("DELETE_PRODUCT")
+    @UseGuards(JwtAuthGuard,RolesGuard)
     @Delete(":id")
     async delete(@Param('id') id):Promise<Products>{
         const fs = require('fs');
@@ -185,6 +158,8 @@ export class ProductsController {
         return this.productService.delete(id);
     }
     
+    @hasPermission("PUT_PRODUCT")
+    @UseGuards(JwtAuthGuard,RolesGuard)
     @Put(":id")
     @UseInterceptors(FileInterceptor('product_img',storage))
     update(
@@ -205,6 +180,7 @@ export class ProductsController {
         }
         return this.productService.update(id,product,productInfo,productType,promotions,screenInfo,rearCameraInfo,operatingSystemInfo,pinInfo,generalInfo);
     }
+
     @Get("img/:imgpath")
     sendImage(@Param('imgpath') imgpath,@Res() res){
         return res.sendFile(join(process.cwd(), 'images/products/' + imgpath));

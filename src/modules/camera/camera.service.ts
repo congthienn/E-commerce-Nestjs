@@ -1,4 +1,4 @@
-import { Body, Injectable } from '@nestjs/common';
+import { Body, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Camera } from 'src/models/camera.entity';
 import { Repository } from 'typeorm';
@@ -18,5 +18,15 @@ export class CameraService {
     }
     async delete(id:number):Promise<any>{
         return await this.cameraRepository.delete(id);
+    }
+    async update(id:number, camera:CreateCameraDto):Promise<Camera>{
+        const findCamera = await this.cameraRepository.findOne(id);
+        if(!findCamera)
+            throw new NotFoundException({
+                code: 404,
+                message: 'Camera not found',
+            });
+        findCamera.name = camera.name;
+        return await this.cameraRepository.save(findCamera);
     }
 }

@@ -6,19 +6,21 @@ import { RolesGuard } from './guards/roles.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtStrategy } from './guards/jwt.strategy';
 import { UserModule } from '../user/user.module';
+import { RolePermission } from 'src/models/role_permission.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports:[
-    ConfigModule.forRoot({isGlobal: true}),
-    forwardRef(() => UserModule),
-    JwtModule.registerAsync({
+      TypeOrmModule.forFeature([RolePermission]),
+      ConfigModule.forRoot({isGlobal: true}),
+      forwardRef(() => UserModule),
+      JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-          // secret: process.env.JWT_SECRET,
           secret:configService.get('JWT_SECRET'),
-          signOptions: {expiresIn: '12h'}
-      })
+          signOptions: {expiresIn: '5h'}
+      }),
   })
   ],
   providers: [AuthService,RolesGuard,JwtAuthGuard,JwtStrategy],

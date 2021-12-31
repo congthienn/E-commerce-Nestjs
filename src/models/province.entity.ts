@@ -1,6 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import { District } from "./district.entity";
 import { Orders } from "./orders.entity";
+import { User } from "./user.entity";
 
 @Entity()
 export class Province{
@@ -18,4 +19,7 @@ export class Province{
 
     @OneToMany(()=>Orders,orders => orders.province)
     orders:Orders[];
+
+    @OneToMany(()=> User,users => users.province)
+    users:User;
 }

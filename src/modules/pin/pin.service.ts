@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Pin } from 'src/models/pin.entity';
 import { Repository } from 'typeorm';
@@ -14,6 +14,16 @@ export class PinService {
         return await this.pinRepository.find();
     }
     async create(pin:CreatePinDto):Promise<Pin> {
+        return await this.pinRepository.save(pin);
+    }
+    async update(id:number,pinUpdate:CreatePinDto):Promise<Pin> {
+        const pin = await this.pinRepository.findOne(id);
+        if(!pin)
+            throw new NotFoundException({
+                code: 404,
+                message: "Pin not found"
+            });
+        pin.name = pinUpdate.name;
         return await this.pinRepository.save(pin);
     }
     async delete(id:number):Promise<any>{

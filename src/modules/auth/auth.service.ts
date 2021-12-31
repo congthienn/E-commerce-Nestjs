@@ -15,6 +15,10 @@ export class AuthService {
         return await this.jwtService.signAsync(payload);
     }
 
+    async generateJWT_ForgotPassword(key:any):Promise<String>{
+        return await this.jwtService.signAsync(key);
+    }
+
     async generateJWT_Customer(customer: Customer):Promise<String>{
         const {password,...payload} = customer;
         return await this.jwtService.signAsync(payload);
@@ -28,7 +32,7 @@ export class AuthService {
         return await bcrypt.compare(PasswordLogin,passwdHash);
     }
 
-    async getUser(token:string):Promise<any>{
+    async getToken(token:string):Promise<any>{
         return await this.jwtService.verify(token,{secret:this.configService.get('JWT_SECRET')});
     }
 }

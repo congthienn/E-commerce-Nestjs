@@ -2,17 +2,7 @@ import { IsEmail, IsNotEmpty, IsPhoneNumber, IsString } from "class-validator";
 import { Comments } from "src/models/comments.entity";
 
 export class CreateCommentDto{
-    @IsString()
-    @IsNotEmpty()
-    customer:string
-
-    @IsPhoneNumber()
-    @IsNotEmpty()
-    phone:string;
-
-    @IsEmail()
-    @IsNotEmpty()
-    email:string;
+    userId?:string;
 
     comment:string;
 
@@ -22,7 +12,7 @@ export class CreateCommentDto{
 
     reply_comment?:Comments;
 
-    productId:number;
+    productId?:number;
 
-    img?:string[]
+    img?:string[];
 }

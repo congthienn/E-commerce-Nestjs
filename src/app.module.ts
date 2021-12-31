@@ -34,6 +34,13 @@ import { MessagesModule } from './modules/messages/messages.module';
 import { SocketUserModule } from './modules/socket-user/socket-user.module';
 import { ChatGateway } from './service/chat/chat.gateway';
 import { ChatModule } from './service/chat/chat.module';
+import { RolesModule } from './modules/roles/roles.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
+import { RolePermissionModule } from './modules/role-permission/role-permission.module';
+import { GoogleModule } from './service/google/google.module';
+import { LoginModule } from './modules/login/login.module';
+import { FacebookModule } from './service/facebook/facebook.module';
+import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -61,7 +68,7 @@ import { ChatModule } from './service/chat/chat.module';
     CommentsModule, 
     PaymentsModule, 
     OrdersModule, 
-    StripeModule, ConversationsModule, MessagesModule, SocketUserModule, ChatModule],
+    StripeModule, ConversationsModule, MessagesModule, SocketUserModule, ChatModule, RolesModule, PermissionsModule, RolePermissionModule, GoogleModule, LoginModule, FacebookModule, NotificationModule],
     controllers: [AppController],
     providers: [AppService, ChatGateway],
 })
